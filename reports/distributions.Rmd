@@ -1,0 +1,55 @@
+---
+title: "exploration_for_nulls"
+author: "jason grahn"
+date: "4/23/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(janitor)
+library(readr)
+library(tibble)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(purrr)
+```
+
+
+```{r}
+ccid_var %>% 
+  select(everything()) %>%  
+  summarise_all(funs(sum(is.na(.))))
+
+ccid_like_bc %>% 
+  select(everything()) %>%  
+  summarise_all(funs(sum(is.na(.))))
+
+# distribution of one numeric variable
+ccid_var %>% 
+  select(retain_value) %>% 
+  ggplot() +
+  geom_histogram(aes(x = retain_value))
+
+# distribution of all numeric variabes
+ccid_var %>%
+  select(-unitid, -lat_y, -long_x, -flagship_binary) %>% 
+  keep(is.numeric) %>% 
+  gather(key = "key", value = "value") %>% 
+  ggplot(aes(value)) +
+    facet_wrap(~ key, scales = "free") +
+    geom_density()
+
+# distribution of all numeric variables 
+# for colleges like BC. 
+ccid_like_bc %>% 
+  select(-unitid, -lat_y, -long_x, -flagship_binary) %>% 
+  keep(is.numeric) %>% 
+  gather(key = "key", value = "value") %>% 
+  ggplot(aes(value)) +
+    facet_wrap(~ key, scales = "free") +
+    geom_density()
+
+```
+

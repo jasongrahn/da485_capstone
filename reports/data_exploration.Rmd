@@ -1,6 +1,6 @@
 ---
 title: "initial exploration"
-output: word_document
+output: github_document
 ---
 
 
@@ -22,7 +22,7 @@ ccid_var <- ccid %>%
   select(-(starts_with("vsa_"))) %>% 
   select(-site, -similar, -nicknames, -counted_pct, -cohort_size, -hbcu, 
          -awards_per_state_value, -awards_per_natl_value, -exp_award_state_value, 
-         -exp_award_natl_value, -grad_100_value, -grad_150_value, -state_sector_ct, 
+         -exp_award_natl_value, -grad_150_value, -state_sector_ct, 
          -carnegie_ct) %>% 
   #convert flagship to binary.  
   mutate(flagship_binary = case_when(flagship == "X" ~ 1,
@@ -36,8 +36,8 @@ ccid_var <- ccid %>%
 ```
 
 ```{r save the output as a csv}
-write_csv(x = ccid_var,
-          path = "ccid_var.csv")
+write_excel_csv(x = ccid_var,
+                path = "ccid_var.csv")
 ```
 
 
@@ -60,7 +60,7 @@ write_csv(x = ccid_var,
 * `long_x` - Institution longitude                          
 * `lat_y` - Institution latitude    
 * `student_count` - Total number of undergraduates in 2010  [[maybe a measure of GIGO?]]
-* `awards_per_value` - Completions per 100 FTE undergraduate students (average 2011, 2012, and 2013)  This is our graduation rate.
+* `awards_per_value` - Completions per 100 FTE undergraduate students (average 2011, 2012, and 2013)  **This is our graduation rate.**
 * `exp_award_value` - Estimated educational spending (expenses related to instruction, research, public service, student services, academic support, institutional support, operations and maintenance) per academic award in 2013. Includes all certificates and degrees
 * `ft_pct` - Percentage of undergraduates who attend full-time  [[needs to convert to decimal]]
 * `fte_value` - total number of full-time equivalent undergraduates 
@@ -106,3 +106,23 @@ write_csv(x = ccid_var,
 * vsa_enroll_after6_transfer - Full-time transfer students who are still enrolled at this institution after six years
 * vsa_enroll_elsewhere_after6_transfer - Full-time transfer students who are enrolled at another institution after six years
 * counted_pct - share entering undergraduate class who were first-time, full-time, degree-seeking students, meaning that they generally would be part of a tracked cohort of potential graduates. The entering class of 2007 is displayed for 4-year institutions; 2010 for 2-year institutions. 
+
+
+```{r}
+glimpse(ccid_var)
+
+ccid_var %>% 
+  filter(flagship_binary == 1) %>% 
+  arrange(state)
+
+glimpse(ccid_var %>% 
+  filter(chronname == "Bellevue College"))
+
+ccid_like_bc <- ccid_var %>%
+  filter(level == "4-year",
+         control == "Public",
+         flagship_binary == 0) 
+
+write_excel_csv(x = ccid_like_bc,
+                path = "ccid_like_bc.csv")
+```
