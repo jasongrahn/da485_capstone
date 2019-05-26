@@ -1,0 +1,211 @@
+---
+title: "ECON400_Project2"
+author: "Diana Spence"
+date: "April 8, 2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(dplyr)
+```
+
+
+```{r Institution Data}
+##Training Data 
+data.I <-read.csv(here("data/train_data.csv"), header = TRUE, sep = ",", stringsAsFactors = TRUE)
+head(data.I)
+
+##Took out the columns that where not needed for the regression
+dataT <- data.I %>% #[,3:19]
+  select(-institution_name, -basic, -endow_value)
+
+##Testing Data
+data.Test <- read.csv(here("data/test_data.csv"), header = TRUE, sep = ",", stringsAsFactors = TRUE)
+DTest <- data.Test %>% #[,3:19]
+  select(-institution_name, -basic)
+```
+
+
+```{r Full Model,}
+##All data included this model has 16 independent variables
+#YDA-TestDataAll
+lm.TDA <- lm(grad_rate ~ student_count + spending_per_award + full_time_pct 
+             + full_time_count + med_sat_value + aid_value
+             + endow_value + grad_on_time_pct + pell_value + fresh_retain_value
+             + full_time_fac_pct + EndowXSpend + PellXSat + RetainXSat
+             + AidXSat + AidXEndow, 
+             data = dataT)
+
+summary(lm.TDA)
+plot(lm.TDA)
+```
+Based on this regression with all 16 independant variables in the model we have 10 variables that are significant. These include: spending_per_award, med_sat_value, endow_value,      grad_on_time_pct, pell_value, fresh_retain_value, full_time_fac_pct, EndowXSpend, PellXSat, RetainXSat, plus the intercept.
+
+```{r Model 2: 15 Variables}
+##Took out: full_time_pct      -5.226e-04  1.854e-02  -0.028 0.977533
+##This had the highest insignificant p-value in the full model
+
+lm.TD15 <- lm(grad_rate~student_count+spending_per_award
+             +full_time_count+med_sat_value+aid_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct+EndowXSpend
+             +PellXSat+RetainXSat+AidXSat
+             +AidXEndow, 
+             data = dataT)
+
+
+summary(lm.TD15)
+plot(lm.TD15)
+
+```
+The second model, lm.TD15, has the same significant variables with a significant improvement in full_time_count. It still is not significant enough but it is close to being significant.
+
+
+```{r Model 3: 14 Variables}
+##Took out: AidXSat            -2.960e-09  9.455e-09  -0.313 0.754374  
+##This had the highest p-value in Model with 15 variables
+
+lm.TD14 <- lm(grad_rate~student_count+spending_per_award
+             +full_time_count+med_sat_value+aid_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct+EndowXSpend
+             +PellXSat+RetainXSat+AidXEndow, 
+             data = dataT)
+
+
+summary(lm.TD14)
+plot(lm.TD14)
+
+```
+Model lm.TD14 has the same number of signifacnt variables as model lm.TD15 and ihas the same borderline, significant, p-value for full_time_count.
+
+
+```{r Model 3: 13 Variables}
+##Took out: AidXEndow          -5.668e-11  7.821e-11  -0.725 0.469077 
+##This had the highest insignificant p-value in Model with 14 variables
+
+lm.TD13 <- lm(grad_rate~student_count+spending_per_award
+             +full_time_count+med_sat_value+aid_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct+EndowXSpend
+             +PellXSat+RetainXSat, 
+             data = dataT)
+
+
+summary(lm.TD13)
+plot(lm.TD13)
+
+```
+When we see this model we have the same number of significant values as in model lm.TD15. This time with a slightly improved p-value for full_time_count making it ever so slightly closer to a significant variable.
+
+
+
+```{r Model 4: 12 Variables}
+##Took out: student_count      -1.878e-06  1.438e-06  -1.306 0.192301 
+##This had the highest insignificant p-value in Model with 14 variables
+
+lm.TD12 <- lm(grad_rate~spending_per_award
+             +full_time_count+med_sat_value+aid_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct+EndowXSpend
+             +PellXSat+RetainXSat, 
+             data = dataT)
+
+
+summary(lm.TD12)
+plot(lm.TD12)
+```
+In this 4th model we can see that taking student count made full_time_count a significant variable and chnged full_time_fac_pct into an insifnificant level at alpha=0.05. The R-square is 0.3743 and the adjusted R-Square is .3553 for our model.
+
+
+```{r Model 5: 11 Variables}
+##Took out: full_time_fac_pct  -2.122e-02  1.188e-02  -1.786 0.074909 . 
+##This had the highest insignificant p-value in Model with 14 variables
+
+lm.TD11 <- lm(grad_rate~spending_per_award
+             +full_time_count+med_sat_value+aid_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +EndowXSpend+PellXSat+RetainXSat, 
+             data = dataT)
+
+
+summary(lm.TD11)
+plot(lm.TD11)
+
+```
+Final model showing all the significant variables and with a significant p-value. 
+
+
+```{r Model 5 & 4 Comparison: 11& 12 Variables}
+##Playing with this for now don't take into account.
+anova(lm.TD11,lm.TDA)
+anova(lm.TDA,lm.TD11)
+anova(lm.TD11,lm.TDA)
+```
+Still need to research to interprit
+
+```{r Predictions}
+library(lattice)
+library(ggplot2)
+library(caret)
+
+DTest.11 <- DTest[, -2]
+DTest.11 <- DTest.11[,-3]
+DTest.11 <- DTest.11[,-15]
+DTest.11 <- DTest.11[,-14]
+DTest.11 <- DTest.11[,-10]
+DTest.11 <- DTest.11[,-15]
+#install.packages('DMwR') If you don;t have it yet
+
+#######********************PREDICTIONS****************************
+##Predictions with Testing data
+predictions <- predict(lm.TD11, newdata =  DTest)
+
+##Prediction Evaluation with Test data
+DMwR::regr.eval(DTest[,1], predictions)
+
+
+
+##Predictions with Training data
+predictionsTrain <- predict(lm.TD11, newdata =  dataT)
+
+##Predicttion Evaluation with Training data
+#The relative error measure "mape" does not require a baseline. It simply calculates the average percentage difference between the true values and the predictions.
+DMwR::regr.eval(dataT[,1], predictionsTrain)
+
+
+```
+
+# Continuing on from Di's work:
+
+1. Automate the model selection
+2. Use the model to predict graduation rate for the test data
+  https://modelr.tidyverse.org/reference/add_predictions.html 
+3. Apply lm from train to test
+  3a. Need to look up from da410 how to "predict" function
+  3b. Remaster test
+4. Dimensional reduction to make 2D
+  PCA? 
+5. Use https://cran.r-project.org/web/packages/broom/vignettes/kmeans.html to build the clusters
+
+
+```{r}
+library(MASS)
+# Fit the full model 
+full.model <- lm(grad_rate ~., data = dataT)
+
+# Stepwise regression model
+step.model <- stepAIC(full.model, 
+                      direction = "both", 
+                      trace = FALSE)
+
+summary(step.model)
+```
+
+```{r}
+library(modelr)
+
+```
+

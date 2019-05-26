@@ -1,0 +1,422 @@
+---
+title: "DA485_Capstone2"
+author: "Diana Spence"
+date: "May 17, 2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(GGally) #Used for the ggcorr()
+library(tidyverse)
+library(modelr)
+library(MASS)
+library(car) #used for VIF
+library(readr)
+```
+
+
+```{r load data}
+#load training
+dir <- "data"
+train_doc <- "train_data.csv"
+
+training <- read_csv(here::here(dir,train_doc)) %>% 
+  dplyr::select(-contains("X"), -id)
+
+#training <-read.csv("train_data.csv", header = TRUE, sep = ",", stringsAsFactors = TRUE)
+head(training, 5) ##Change to one name
+```
+
+#Initial correlation
+
+```{r Institution Data}
+##Took out the columns in Training that where not needed for the regression
+#training <- training[,3:19]
+
+#cor(training[,4:14])
+
+initial_plot_data <- training %>% 
+  dplyr::select(-institution_name, -basic)
+
+cor(initial_plot_data)
+
+##Scatterplots for the independent variables 
+plot(initial_plot_data)
+
+##This function gives us a visual representation
+##Important to note that the visual rounds numbers to the first decimal
+ggcorr(initial_plot_data, 
+       label = TRUE, 
+       label_alpha = TRUE)
+```
+
+To start the data is loaded into R and we are looking at the correlation between `grad_rate` and the variables we have. We can see that `student_count` and `full_time_count` have a high correlation of .98 although on the visual it shows a perfect 1. We have decided to keep them and see how modeling the data deals with these two highly correlated varibles. We think that they are both important to predicting the graduation rate of colleges.
+
+# Modeling
+
+## Model 1: Base model
+
+Model with all the variables: `student_count`, `spending_per_award`, `full_time_pct`, `full_time_count`, `med_sat_value+aid_value`, `endow_value`, `grad_on_time_pct+pell_value`, `fresh_retain_value`, `full_time_fac_pct`. 
+
+```{r Full Model W/Full training dataset}
+##All data included this model has 11 independent variables
+model.1 <- lm(grad_rate ~ student_count +spending_per_award +full_time_pct
+             +full_time_count +med_sat_value +aid_value
+             +endow_value +grad_on_time_pct +pell_value +fresh_retain_value
+             + full_time_fac_pct,
+             data = training)
+
+##Model summary for model 1
+summary(model.1)
+
+# Diagnostic plots for model 1
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.1)
+
+##Standard regression
+#stdres(model.1)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.1) # variance inflation factors 
+sqrt(vif(model.1)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+```
+
+When we run the regression model we get 4 significant variables and the intercept is significant. We have an adjusted R^2 of %31.67 and a significant p-value. Next by looking at the standard residuals we can see that we don't have very many of them therefore we can take out the extremem outliers and still have enough observations to do further modeling on the data that is remaining. 
+
+## Model 2: Outliers removed
+
+With model 2 we have all the variables NO Interactions and have excluded all the outliers. 
+
+```{r removing outliers}
+# ##Training Data 
+# data.2 <-read.csv("TrainingData_NO_Outliers.csv", header = TRUE, sep = ",", stringsAsFactors = TRUE)
+
+# scrapping that to run residuals and filter using tidy-style code
+training_without_outliers <- add_residuals(data = training,
+                                           model = model.1,
+                                           var = "resid") %>% 
+  mutate(sdev = sd(resid),
+                std.norm = resid / sdev,
+                abs.std = abs(std.norm)) %>% #note: 407 rows at this point
+   #dplyr::arrange(desc(abs.std)) %>% 
+  filter(abs.std < 2)
+```
+
+```{r second model}
+model.2 <- lm(grad_rate ~ student_count + spending_per_award + full_time_pct + 
+                        full_time_count + med_sat_value + aid_value + endow_value + 
+                        grad_on_time_pct + pell_value + fresh_retain_value + full_time_fac_pct
+                      ,data = training_without_outliers)
+
+##Scatterplots for the independent variables
+plot(training_without_outliers[,4:14])
+
+###Model summary
+summary(model.2)
+
+# Diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.2)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.2) # variance inflation factors 
+sqrt(vif(model.2)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+
+```
+
+When we look at this model with the outliers taken out we get a better p-values for same varibles as in Model 1 and an increased adjusted R^2 of 48.3% which is an improvement on Model 1. The p-value for the model itself is still significant.
+
+## Model 3: Trasformations
+For model 3 we decided to transform some of the money values. 
+
+```{r Model 3 w/Transformation on Money Values}
+##Logging monetary values endow_value & pell_value
+model.3 <- lm(grad_rate~student_count+spending_per_award+full_time_pct
+             +full_time_count+med_sat_value+aid_value
+             +log(endow_value)+grad_on_time_pct+log(pell_value)+fresh_retain_value+
+             +full_time_fac_pct
+             ,data = training_without_outliers)
+
+###Model summary
+summary(model.3)
+
+# Diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.3)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.3) # variance inflation factors 
+sqrt(vif(model.3)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+```
+
+Two of the transformations were not feasable because they had 0 values that could not be logged. We did log transformations of two variables (endow_value & pell_value) and they made no significant difference. Model 3's adjusted R^2 decreased to 48.21% from 48.3% and the p-value for aid_value went from three stars of significance to two stars. Because the changes did not add any substantial significance we will keep the variables as they are with no treansformation. For Model 4 we will introduce interactions without logging reverberating back to model 2.
+
+## Model 4: Interactions w/No Outliers
+Model 4 shows 5 interactions apart from the other 11 independent variables. The ineractions that were added are: endow_value*spending_per_award (EndowXSpend), pell_value*med_sat_value (PellXSat), fresh_retain_value*med_sat_value (RetainXSat), aid_value*med_sat_value (AidXSat), aid_value*endow_value (AidXEndow).  For the EndowXSpend interaction we believe that the more money the institutaion gets, the more they have, to spend on ways to increase student success. The PellXSat ineraction is important because you need to have and maintain a certain GPA to get a Pell Grant and having high SAT scores indicates the ability to maintain a minimum GPA to get and maintain the Pell Grant. For RetainXSat interaction  we believed that high SAT scores were a good indicator of your ability to get throug freshman year of colleged. For AidXSat 
+
+
+```{r Full Model 4 w/Interactions No Outliers}
+##Model w/Interactions
+model.4 <- lm(grad_rate~student_count+spending_per_award+full_time_pct
+             +full_time_count+med_sat_value+aid_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct
+             +endow_value*spending_per_award     #EndowXSpend
+             +pell_value*med_sat_value           #PellXSat
+             +fresh_retain_value*med_sat_value   #RetainXSat
+             +aid_value*med_sat_value            #AidXSat
+             +aid_value*endow_value              #AidXEndow
+             ,data = training_without_outliers)
+
+###Model summary
+summary(model.4)
+
+# Diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.4)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.4) # variance inflation factors 
+sqrt(vif(model.4)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+
+```
+
+Based on this regression there are 16 independant variables in Model 4. We have 8 variables that are significant plus the intercept, these include: spending_per_award, med_sat_value, grad_on_time_pct, pell_value11, full_time_fac_pct, EndowXSpend, PellXSat, AidXEndow, and the intercept. The adjusted R^2 increased to 51.75% from 48.3% and the model p-value is still significant. Student_count shows the highest p-value at 0.783580  and therefore will be the first variable to be taken out. 
+
+## Beginning backward elimination 
+### Model 5: student_count removed
+With this model we start backwards elimination. The first variable to go is student_count with a p-value 0.783580 baased on Model 4. The results still show a significant intercept and 9 variables that are significant, these include: spending_per_award, full_time_count, med_sat_value, grad_on_time_pct, pell_value, full_time_fac_pct, EndowXSpend, PellXSat, AidXEndow. The variables full_time_count became significant. The adjusted R^2 went up to 51.87% from 51.75% while the model is still significant. The next variable to eleiminate is aid_value with a p-value of 0.345557 has the highest value for model 5.
+
+```{r Model 5, Deleting student_count}
+## Model with interactions minus student_count
+model.5 <- lm(grad_rate~spending_per_award+full_time_pct
+             +full_time_count+med_sat_value+aid_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct
+             +endow_value*spending_per_award     #EndowXSpend
+             +pell_value*med_sat_value           #PellXSat
+             +fresh_retain_value*med_sat_value   #RetainXSat
+             +aid_value*med_sat_value            #AidXSat
+             +aid_value*endow_value              #AidXEndow
+             ,data = training_without_outliers)
+
+###Model summary
+summary(model.5)
+
+# Diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.5)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.5) # variance inflation factors 
+sqrt(vif(model.5)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+```
+
+### Model 6: aid_value removed
+With aid_value taken out we run the model and it stil shows up in the model because of the interactions all the same variables are significant as before and  our adjusted R^2 is 51.87 which is not different from model 5.
+```{r Model 6: Minus aid_value}
+## Model with interactions minus student_count & aid_value
+model.6 <- lm(grad_rate~spending_per_award+full_time_pct
+             +full_time_count+med_sat_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct
+             +endow_value*spending_per_award     #EndowXSpend
+             +pell_value*med_sat_value           #PellXSat
+             +fresh_retain_value*med_sat_value   #RetainXSat
+             +aid_value*med_sat_value            #AidXSat
+             +aid_value*endow_value              #AidXEndow
+             ,data = training_without_outliers)
+
+###Model summary
+summary(model.6)
+
+# Diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.6)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.6) # variance inflation factors 
+sqrt(vif(model.6)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+```
+
+### Model 7: med_sat_value:aid_value removed
+For model 7 instead of taking full_time_pct out we decided to go with med_sat_value:aid_value as aid_value still shows up in our model because of the interactions. Med_sat_value, fresh_retain_value and endow_value became significant. Doing this decreases our adjusted R^2 to 51.75% from 51.87% but it gives us 12 significant variables and a significant intercept. The next variable to delete is AidXEndow, and this is because of the ineraction with aid_value. We thought this would be btter thank taking out the highest insifnificant p-value.This ineractions p-value is 0.082648.
+```{r Model 7: Minus AidXSat}
+## Model with interactions minus student_count & aid_value
+model.7 <- lm(grad_rate~spending_per_award+full_time_pct
+             +full_time_count+med_sat_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct
+             +endow_value*spending_per_award     #EndowXSpend
+             +pell_value*med_sat_value           #PellXSat
+             +fresh_retain_value*med_sat_value   #RetainXSat
+             +aid_value*endow_value              #AidXEndow
+             ,data = training_without_outliers)
+
+###Model summary
+summary(model.7)
+
+# Diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.7)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.7) # variance inflation factors 
+sqrt(vif(model.7)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+```
+      
+### Model 8:AidXEndow removed
+Took out AidXEndow and the results are as follows: All remaining variables are significant and the adjusted R^2 is 50.22% from 51.75%. The model p-value is still significant.
+
+```{r}
+## Model with interactions minus student_count & aid_value
+model.8 <- lm(grad_rate~spending_per_award+full_time_pct
+             +full_time_count+med_sat_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct
+             +endow_value*spending_per_award     #EndowXSpend
+             +pell_value*med_sat_value           #PellXSat
+             +fresh_retain_value*med_sat_value   #RetainXSat
+             ,data = training_without_outliers)
+
+###Model summary
+summary(model.8)
+
+# Diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.8)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.8) # variance inflation factors 
+sqrt(vif(model.8)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+```
+
+### Model 9: full_time_percent removed
+To see if we could get all our independent varibles and interactions at a better significance level we decided to take full_time_percent out to see what it did to the model. The results show that the adjusted R^2 lowered a bit to 49.65 from 50.22% the model p-value still shows a significant level p-value. to see if we could increase the p-value to better significance level the next variable to take out was full_time_fac_pct it has highest significant p-value and the coefficient is negative which is counterintuiative.
+
+```{r Model 9 w/o full_time_pct}
+## Model with interactions minus student_count & aid_value
+model.9 <- lm(grad_rate~spending_per_award
+             +full_time_count+med_sat_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value+
+             +full_time_fac_pct
+             +endow_value*spending_per_award     #EndowXSpend
+             +pell_value*med_sat_value           #PellXSat
+             +fresh_retain_value*med_sat_value   #RetainXSat
+             ,data = training_without_outliers)
+
+###Model summary
+summary(model.9)
+
+# Diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.9)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.9) # variance inflation factors 
+sqrt(vif(model.9)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+```
+      
+### Model 10
+At this point all the variables and interactions are significant at alpha = 0.5 The adjusted R^2 for Model 10 is49.15% sligthly down from Model 9's 49.65 not too bad of a difference between the models. 
+```{r Model 10 w/o full_time_fac_pct}
+## Model with interactions minus student_count & aid_value
+model.10 <- lm(grad_rate~spending_per_award
+             +full_time_count+med_sat_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value
+             +endow_value*spending_per_award     #EndowXSpend
+             +pell_value*med_sat_value           #PellXSat
+             +fresh_retain_value*med_sat_value   #RetainXSat
+             ,data = training_without_outliers)
+
+###Model summary
+summary(model.10)
+
+# Diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(model.10)
+
+# Evaluate Collinearity with the variance inflation factor
+vif(model.10) # variance inflation factors 
+sqrt(vif(model.10)) > 2.5 # I chose a 2.5 VIF based on article I read but this can be discussed
+```
+
+# Summary
+
+Model 10 is the model that we should go with. If we keep going as you can see the models adjusted R^2 just keeps getting slightly worse than the previous model's adjusted R^2 and the p-values of the interactions and independent variables don't show a significant enough change to continue with further backwards elemination. Testing the assumptions for model 10:
+
+1. Linearity of the data: 
+  + The linearity assumption can be checked by inspecting the Residuals vs Fitted.In our example, there is no pattern in the residual plot. This suggests that we can assume linear relationship between the predictors and the outcome variables. 
+  
+2. Homogeneity of variance:
+  + This assumption can be checked by examining the scale-location plot.This plot shows if residuals are spread equally along the ranges of predictors. It's good that you can see the horizontal line with equally spread points.
+  
+3. Normality of residuals:
+  + The QQ plot of residuals can be used to visually check the normality assumption. The normal probability plot of residuals should approximately follow a straight line. In our example, all the points fall approximately along this reference line, so we can assume normality.
+  
+4. Independence of residuals error terms:
+  + In our Model 10 plot, the data doesn't present any influential points. Cook's distance lines (a red dashed line) are not shown on the Residuals vs Leverage plot because all points are well inside of the Cook's distance lines. 
+
+**************************************************************************************************
+
+## Other models
+
+### Model 11: med_sat_value:fresh_retain_value taken out
+
+```{r Model 11 RetainXSat}
+## Model with interactions minus student_count & aid_value
+model.11 <- lm(grad_rate~spending_per_award
+             +full_time_count+med_sat_value
+             +endow_value+grad_on_time_pct+pell_value+fresh_retain_value
+             +endow_value*spending_per_award     #EndowXSpend
+             +pell_value*med_sat_value           #PellXSat
+             ,data = training_without_outliers)
+
+##Summary for the model
+summary(model.11)
+```
+      
+### Model 12: Fresh retain value is out
+
+```{r Model 12 fresh_retain_value out}
+## Model 
+model.12 <- lm(grad_rate~spending_per_award
+              +full_time_count+med_sat_value
+              +endow_value+grad_on_time_pct+pell_value
+              +endow_value*spending_per_award     #EndowXSpend
+              +pell_value*med_sat_value           #PellXSat
+              ,data = training_without_outliers)
+
+##Summary for the model
+summary(model.12)
+```
+
+**************************************************************************************************
+
+We have decided to go with Model 10 for ALL our predictions. We have 
+
+```{r Predictions}
+library(modelr)
+##Predictions on the training with the extracted outliers
+##adding them back to training_without_outliers with predictions
+training_without_outliers <- add_predictions(training_without_outliers, model.10, var = "pred")
+
+##Adds residuals to training_without_outliers dataframe
+training_without_outliers <- add_residuals(training_without_outliers, model.10)
+```
+
+
+
+
+```{r Predictions for test Dataset}
+#Test dataset for Prediction
+test_doc <- "train_data.csv"
+
+testing <- read_csv(here::here(dir,test_doc)) %>% 
+  dplyr::select(-contains("X"), -id)
+
+#data.3 <- read.csv("test_data.csv", header = TRUE, sep = ",", stringsAsFactors = TRUE)
+
+add_predictions(testing, model.10, var = "pred")
+```
