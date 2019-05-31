@@ -43,35 +43,23 @@ grad <- ggplot(data = data, aes(x=grad_rate)) +
                labs(x="Graduation Rate")+
                theme_light()
 
-#grad
-```
-
-``` r
 endow <- ggplot(data = data, aes(x=endow_value)) +
                 geom_histogram(bins = 50, fill = "blue", color = "orange")+
                 labs(x="Endowment Value")+
                 xlim(0,40000)+
                 theme_light()
-#endow
-```
 
-``` r
 student <- ggplot(data = data, aes(x=student_count)) +
                   geom_histogram(bins = 20, fill = "blue", color = "orange")+
                   labs(x="Student Count")+
                   theme_light()
-#student
-```
 
-``` r
 spending <- ggplot(data = data, aes(x=spending_per_award)) +
                    geom_histogram(bins = 25, fill = "blue", color = "orange")+
                    labs(x="Spending Per Award")+
                    theme_light()
-#spending
-```
 
-``` r
+# now plot all these together
 cowplot::plot_grid(grad,endow,student,spending,
                    labels = "AUTO",
                    label_size = 18,
@@ -82,7 +70,7 @@ cowplot::plot_grid(grad,endow,student,spending,
 
     ## Warning: Removed 2 rows containing missing values (geom_bar).
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 A: Grad rate appears to be normally distributed with a mean around 0.2
 and a median around 0.2.
@@ -101,7 +89,7 @@ fullpct <- ggplot(data = data, aes(x=full_time_pct)) +
 fullpct
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
 fullcount <- ggplot(data = data, aes(x=full_time_count)) +
@@ -111,7 +99,7 @@ fullcount <- ggplot(data = data, aes(x=full_time_count)) +
 fullcount
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ``` r
 medsat <- ggplot(data = data, aes(x=med_sat_value)) +
@@ -121,7 +109,7 @@ medsat <- ggplot(data = data, aes(x=med_sat_value)) +
 medsat
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ``` r
 aid <- ggplot(data = data, aes(x=aid_value)) +
@@ -131,7 +119,7 @@ aid <- ggplot(data = data, aes(x=aid_value)) +
 aid
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ``` r
 gradtime <- ggplot(data = data, aes(x=grad_on_time_pct)) +
@@ -141,7 +129,7 @@ gradtime <- ggplot(data = data, aes(x=grad_on_time_pct)) +
 gradtime
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 ``` r
 pell <- ggplot(data = data, aes(x=pell_value)) +
@@ -151,7 +139,7 @@ pell <- ggplot(data = data, aes(x=pell_value)) +
 pell
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
 fresh <- ggplot(data = data, aes(x=fresh_retain_value)) +
@@ -161,7 +149,7 @@ fresh <- ggplot(data = data, aes(x=fresh_retain_value)) +
 fresh
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 fullfac <- ggplot(data = data, aes(x=full_time_fac_pct)) +
@@ -173,7 +161,7 @@ fullfac
 
     ## Warning: Removed 1 rows containing non-finite values (stat_bin).
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ``` r
 endowspend <- ggplot(data = data, aes(x=EndowXSpend)) +
@@ -187,7 +175,7 @@ endowspend
 
     ## Warning: Removed 2 rows containing missing values (geom_bar).
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ``` r
 pellsat <- ggplot(data = data, aes(x=PellXSat)) +
@@ -196,7 +184,7 @@ pellsat <- ggplot(data = data, aes(x=PellXSat)) +
 pellsat
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 ``` r
 retainsat <- ggplot(data = data, aes(x=RetainXSat)) +
@@ -205,7 +193,7 @@ retainsat <- ggplot(data = data, aes(x=RetainXSat)) +
 retainsat 
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 ``` r
 aidsat <- ggplot(data = data, aes(x=AidXSat)) +
@@ -214,7 +202,7 @@ aidsat <- ggplot(data = data, aes(x=AidXSat)) +
 aidsat
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 ``` r
 aidendow <- ggplot(data = data, aes(x=AidXEndow)) +
@@ -228,4 +216,4 @@ aidendow
 
     ## Warning: Removed 2 rows containing missing values (geom_bar).
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->

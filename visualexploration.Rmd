@@ -27,35 +27,23 @@ grad <- ggplot(data = data, aes(x=grad_rate)) +
                labs(x="Graduation Rate")+
                theme_light()
 
-#grad
-```
-
-```{r}
 endow <- ggplot(data = data, aes(x=endow_value)) +
                 geom_histogram(bins = 50, fill = "blue", color = "orange")+
                 labs(x="Endowment Value")+
                 xlim(0,40000)+
                 theme_light()
-#endow
-```
 
-```{r}
 student <- ggplot(data = data, aes(x=student_count)) +
                   geom_histogram(bins = 20, fill = "blue", color = "orange")+
                   labs(x="Student Count")+
                   theme_light()
-#student
-```
 
-```{r}
 spending <- ggplot(data = data, aes(x=spending_per_award)) +
                    geom_histogram(bins = 25, fill = "blue", color = "orange")+
                    labs(x="Spending Per Award")+
                    theme_light()
-#spending
-```
 
-```{r}
+# now plot all these together
 cowplot::plot_grid(grad,endow,student,spending,
                    labels = "AUTO",
                    label_size = 18,
