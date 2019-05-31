@@ -86,123 +86,116 @@ fullpct <- ggplot(data = data, aes(x=full_time_pct)) +
                   geom_histogram(bins = 20, fill = "blue", color = "orange")+
                   labs(x="Fulltime Student Percentage")+
                   theme_light()
-fullpct
-```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
-
-``` r
 fullcount <- ggplot(data = data, aes(x=full_time_count)) +
                     geom_histogram(bins = 20, fill = "blue", color = "orange")+
                     labs(x="Fulltime Student Count")+
                     theme_light()
-fullcount
-```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
-
-``` r
 medsat <- ggplot(data = data, aes(x=med_sat_value)) +
                  geom_histogram(bins = 20, fill = "blue", color = "orange")+
                  labs(x="Median SAT Score")+
                  theme_light()
-medsat
-```
-
-![](visualexploration_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
-
-``` r
 aid <- ggplot(data = data, aes(x=aid_value)) +
               geom_histogram(bins = 30, fill = "blue", color = "orange")+
               labs(x="Aid Value")+
               theme_light()
-aid
+
+# now plot all these together
+cowplot::plot_grid(fullpct, fullcount, medsat, aid,
+                   labels = "AUTO",
+                   label_size = 18,
+                   align = "hv")
 ```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+A:
+
+B:
+
+C:
+
+D:
 
 ``` r
 gradtime <- ggplot(data = data, aes(x=grad_on_time_pct)) +
                    geom_histogram(bins = 20, fill = "blue", color = "orange")+
                    labs(x="Graduating on Time")+
                    theme_light()
-gradtime
-```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
-
-``` r
 pell <- ggplot(data = data, aes(x=pell_value)) +
                geom_histogram(bins = 20, fill = "blue", color = "orange")+
                labs(x="Pell Value")+
                theme_light()
-pell
-```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
-
-``` r
 fresh <- ggplot(data = data, aes(x=fresh_retain_value)) +
                 geom_histogram(binwidth = 0.025, fill = "blue", color = "orange")+
                 labs(x="Freshman Retainment")+
                 theme_light()
-fresh
-```
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
-
-``` r
 fullfac <- ggplot(data = data, aes(x=full_time_fac_pct)) +
                   geom_histogram(bins = 20, fill = "blue", color = "orange")+
                   labs(x="Full Time Faculty")+
                   theme_light()
-fullfac
+
+# now plot all these together
+cowplot::plot_grid(gradtime, pell, fresh, fullfac,
+                   labels = "AUTO",
+                   label_size = 18,
+                   align = "hv")
 ```
 
     ## Warning: Removed 1 rows containing non-finite values (stat_bin).
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+A:
+
+B:
+
+C:
+
+D:
 
 ``` r
 endowspend <- ggplot(data = data, aes(x=EndowXSpend)) +
                      geom_histogram(bins = 50, fill = "blue", color = "orange")+
                      xlim(0,1000000000)+
                      theme_light()
-endowspend
+
+pellsat <- ggplot(data = data, aes(x=PellXSat)) +
+                  geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                  theme_light()
+
+retainsat <- ggplot(data = data, aes(x=RetainXSat)) +
+                    geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                    theme_light()
+
+aidsat <- ggplot(data = data, aes(x=AidXSat)) +
+                 geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                 theme_light()
+
+# now plot all these together
+cowplot::plot_grid(endowspend, pellsat, retainsat, aidsat,
+                   labels = "AUTO",
+                   label_size = 18,
+                   align = "hv")
 ```
 
     ## Warning: Removed 56 rows containing non-finite values (stat_bin).
 
     ## Warning: Removed 2 rows containing missing values (geom_bar).
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
-``` r
-pellsat <- ggplot(data = data, aes(x=PellXSat)) +
-                  geom_histogram(bins = 20, fill = "blue", color = "orange")+
-                  theme_light()
-pellsat
-```
+A:
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+B:
 
-``` r
-retainsat <- ggplot(data = data, aes(x=RetainXSat)) +
-                    geom_histogram(bins = 20, fill = "blue", color = "orange")+
-                    theme_light()
-retainsat 
-```
+C:
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
-
-``` r
-aidsat <- ggplot(data = data, aes(x=AidXSat)) +
-                 geom_histogram(bins = 20, fill = "blue", color = "orange")+
-                 theme_light()
-aidsat
-```
-
-![](visualexploration_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+D:
 
 ``` r
 aidendow <- ggplot(data = data, aes(x=AidXEndow)) +
@@ -216,4 +209,4 @@ aidendow
 
     ## Warning: Removed 2 rows containing missing values (geom_bar).
 
-![](visualexploration_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](visualexploration_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
