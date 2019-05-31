@@ -1,0 +1,172 @@
+---
+title: "VisualizationExploration"
+author: "Kevin Letourneau"
+date: "May 22, 2019"
+output: github_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyverse)
+library(readr)
+```
+
+```{r}
+dir <- "data"
+file <- "institution_data.csv"
+data <- read_csv(here::here(dir,file))
+                 
+head(data)
+```
+
+```{r}
+grad <- ggplot(data = data, aes(x=grad_rate)) +
+               geom_histogram(binwidth = 0.025, bins = 20, fill = "blue", color = "orange")+
+               labs(x="Graduation Rate")+
+               theme_light()
+
+#grad
+```
+
+```{r}
+endow <- ggplot(data = data, aes(x=endow_value)) +
+                geom_histogram(bins = 50, fill = "blue", color = "orange")+
+                labs(x="Endowment Value")+
+                xlim(0,40000)+
+                theme_light()
+#endow
+```
+
+```{r}
+student <- ggplot(data = data, aes(x=student_count)) +
+                  geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                  labs(x="Student Count")+
+                  theme_light()
+#student
+```
+
+```{r}
+spending <- ggplot(data = data, aes(x=spending_per_award)) +
+                   geom_histogram(bins = 25, fill = "blue", color = "orange")+
+                   labs(x="Spending Per Award")+
+                   theme_light()
+#spending
+```
+
+```{r}
+cowplot::plot_grid(grad,endow,student,spending,
+                   labels = "AUTO",
+                   label_size = 18,
+                   align = "hv")
+```
+
+A: Grad rate appears to be normally distributed with a mean around 0.2 and a median around 0.2.
+
+B:
+
+C:
+
+D:
+
+```{r}
+fullpct <- ggplot(data = data, aes(x=full_time_pct)) +
+                  geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                  labs(x="Fulltime Student Percentage")+
+                  theme_light()
+fullpct
+```
+
+```{r}
+fullcount <- ggplot(data = data, aes(x=full_time_count)) +
+                    geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                    labs(x="Fulltime Student Count")+
+                    theme_light()
+fullcount
+```
+
+```{r}
+medsat <- ggplot(data = data, aes(x=med_sat_value)) +
+                 geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                 labs(x="Median SAT Score")+
+                 theme_light()
+medsat
+```
+
+```{r}
+aid <- ggplot(data = data, aes(x=aid_value)) +
+              geom_histogram(bins = 30, fill = "blue", color = "orange")+
+              labs(x="Aid Value")+
+              theme_light()
+aid
+```
+
+```{r}
+gradtime <- ggplot(data = data, aes(x=grad_on_time_pct)) +
+                   geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                   labs(x="Graduating on Time")+
+                   theme_light()
+gradtime
+```
+
+```{r}
+pell <- ggplot(data = data, aes(x=pell_value)) +
+               geom_histogram(bins = 20, fill = "blue", color = "orange")+
+               labs(x="Pell Value")+
+               theme_light()
+pell
+```
+
+```{r}
+fresh <- ggplot(data = data, aes(x=fresh_retain_value)) +
+                geom_histogram(binwidth = 0.025, fill = "blue", color = "orange")+
+                labs(x="Freshman Retainment")+
+                theme_light()
+fresh
+```
+
+```{r}
+fullfac <- ggplot(data = data, aes(x=full_time_fac_pct)) +
+                  geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                  labs(x="Full Time Faculty")+
+                  theme_light()
+fullfac
+```
+
+```{r}
+endowspend <- ggplot(data = data, aes(x=EndowXSpend)) +
+                     geom_histogram(bins = 50, fill = "blue", color = "orange")+
+                     xlim(0,1000000000)+
+                     theme_light()
+endowspend
+```
+
+```{r}
+pellsat <- ggplot(data = data, aes(x=PellXSat)) +
+                  geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                  theme_light()
+pellsat
+```
+
+```{r}
+retainsat <- ggplot(data = data, aes(x=RetainXSat)) +
+                    geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                    theme_light()
+retainsat 
+```
+
+```{r}
+aidsat <- ggplot(data = data, aes(x=AidXSat)) +
+                 geom_histogram(bins = 20, fill = "blue", color = "orange")+
+                 theme_light()
+aidsat
+```
+
+```{r}
+aidendow <- ggplot(data = data, aes(x=AidXEndow)) +
+                   geom_histogram(bins = 50, fill = "blue", color = "orange")+
+                   xlim(0,100000000)+
+                   theme_light()
+aidendow
+```

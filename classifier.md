@@ -72,7 +72,8 @@ model.10 <- lm(grad_rate ~ spending_per_award
 ``` r
 training_with_predictions <- add_predictions(training_without_outliers, model.10, var = "pred_grad_rate") %>% 
   #and we dont need these other variables either
-  dplyr::select(-resid, -sdev, -std.norm, -abs.std) 
+  dplyr::select(-resid, -sdev, -std.norm, -abs.std) %>% 
+  mutate(scaled = scale(pred_grad_rate))
 
 #and a quick visual of known graduation to predicuted graduation
 training_with_predictions %>% 
@@ -85,10 +86,10 @@ training_with_predictions %>%
 ![](classifier_files/figure-gfm/add%20predictions%20back%20to%20training%20set-1.png)<!-- -->
 
 ``` r
-#histogram of predictions
+#histogram of scaled predictions
 training_with_predictions %>% 
   ggplot() +
-  geom_histogram(aes(x = pred_grad_rate), bins = 25)
+  geom_histogram(aes(x = scaled), bins = 25)
 ```
 
 ![](classifier_files/figure-gfm/add%20predictions%20back%20to%20training%20set-2.png)<!-- -->
