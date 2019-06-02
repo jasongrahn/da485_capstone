@@ -74,6 +74,7 @@ training_with_predictions <- add_predictions(training_without_outliers, model.10
 training_with_predictions %>% 
   ggplot(aes(x = grad_rate, y = pred_grad_rate)) +
   geom_point() + 
+  geom_smooth(method = "lm") + 
   geom_rug() +
   theme_light()
 ```
@@ -84,7 +85,7 @@ training_with_predictions %>%
 #histogram of scaled predictions
 training_with_predictions %>% 
   ggplot() +
-  geom_histogram(aes(x = scaled), bins = 25)
+  geom_histogram(aes(x = pred_grad_rate), bins = 25)
 ```
 
 ![](classifier_files/figure-gfm/add%20predictions%20back%20to%20training%20set-2.png)<!-- -->
@@ -99,6 +100,7 @@ testing_with_predictions <- add_predictions(testing, model.10, var = "pred_grad_
 testing_with_predictions %>% 
   ggplot(aes(x = grad_rate, y = pred_grad_rate)) +
   geom_point() + 
+  geom_smooth(method = "lm") + 
   geom_rug() +
   theme_light()
 ```
