@@ -85,7 +85,8 @@ training_with_predictions %>%
 #histogram of scaled predictions
 training_with_predictions %>% 
   ggplot() +
-  geom_histogram(aes(x = pred_grad_rate), bins = 25)
+  geom_histogram(aes(x = pred_grad_rate), bins = 25) +
+  theme_light() 
 ```
 
 ![](classifier_files/figure-gfm/add%20predictions%20back%20to%20training%20set-2.png)<!-- -->
@@ -114,6 +115,7 @@ testing_with_predictions %>%
   geom_histogram(aes(x = pred_grad_rate), bins = 25) +
   geom_vline(aes(xintercept = 0.2162771), color = "blue") +
   geom_vline(aes(xintercept = 0.195), color = "red") +
+  theme_light() +
   labs(caption = "Red line is BC actual graduation rate,
   Blue line is BC predicted grad rate")
 ```
