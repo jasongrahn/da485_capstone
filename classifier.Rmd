@@ -15,17 +15,12 @@ set.seed(310)
 
 ```{r import data}
 #load training
-dir <- "data"
-train_doc <- "train_data.csv"
-
-training <- read_csv(here::here(dir,train_doc)) %>% 
+training <- read_csv(here::here("data/train_data.csv")) %>% 
   dplyr::select(-contains("X"), -id)
 
 #load testing
-test_doc <- "train_data.csv"
-
-testing <- read_csv(here::here(dir,test_doc)) %>% 
-  dplyr::select(-contains("X"), -id)
+testing <- read_csv(here::here("data/test_data.csv")) %>% 
+  dplyr::select(-contains("X"), -id) 
 ```
 
 ```{r build and use model 1}
@@ -80,4 +75,35 @@ training_with_predictions %>%
   geom_histogram(aes(x = scaled), bins = 25)
 ```
 
+```{r}
+testing_with_predictions <- add_predictions(testing, model.10, var = "pred_grad_rate") %>% 
+  #and we dont need these other variables either
+  #dplyr::select(-resid, -sdev, -std.norm, -abs.std) %>% 
+  mutate(scaled = scale(pred_grad_rate))
+
+#and a quick visual of known graduation to predicuted graduation
+testing_with_predictions %>% 
+  ggplot(aes(x = grad_rate, y = pred_grad_rate)) +
+  geom_point() + 
+  geom_rug() +
+  theme_light()
+
+#histogram of scaled predictions
+testing_with_predictions %>% 
+  ggplot() +
+  geom_histogram(aes(x = pred_grad_rate), bins = 25) +
+  geom_vline(aes(xintercept = 0.2162771), color = "blue") +
+  geom_vline(aes(xintercept = 0.195), color = "red") +
+  labs(caption = "Red line is BC actual graduation rate,
+  Blue line is BC predicted grad rate")
+  
+
+#testing_with_predictions %>% filter(institution_name == "Bellevue College")
+```
+
+
+
+```{r}
+testing_with_predictions %>% filter(institution_name == "Bellevue College")
+```
 

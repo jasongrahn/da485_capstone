@@ -5,10 +5,7 @@ jason grahn
 
 ``` r
 #load training
-dir <- "data"
-train_doc <- "train_data.csv"
-
-training <- read_csv(here::here(dir,train_doc)) %>% 
+training <- read_csv(here::here("data/train_data.csv")) %>% 
   dplyr::select(-contains("X"), -id)
 ```
 
@@ -23,10 +20,8 @@ training <- read_csv(here::here(dir,train_doc)) %>%
 
 ``` r
 #load testing
-test_doc <- "train_data.csv"
-
-testing <- read_csv(here::here(dir,test_doc)) %>% 
-  dplyr::select(-contains("X"), -id)
+testing <- read_csv(here::here("data/test_data.csv")) %>% 
+  dplyr::select(-contains("X"), -id) 
 ```
 
     ## Parsed with column specification:
@@ -93,3 +88,49 @@ training_with_predictions %>%
 ```
 
 ![](classifier_files/figure-gfm/add%20predictions%20back%20to%20training%20set-2.png)<!-- -->
+
+``` r
+testing_with_predictions <- add_predictions(testing, model.10, var = "pred_grad_rate") %>% 
+  #and we dont need these other variables either
+  #dplyr::select(-resid, -sdev, -std.norm, -abs.std) %>% 
+  mutate(scaled = scale(pred_grad_rate))
+
+#and a quick visual of known graduation to predicuted graduation
+testing_with_predictions %>% 
+  ggplot(aes(x = grad_rate, y = pred_grad_rate)) +
+  geom_point() + 
+  geom_rug() +
+  theme_light()
+```
+
+![](classifier_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+``` r
+#histogram of scaled predictions
+testing_with_predictions %>% 
+  ggplot() +
+  geom_histogram(aes(x = pred_grad_rate), bins = 25) +
+  geom_vline(aes(xintercept = 0.2162771), color = "blue") +
+  geom_vline(aes(xintercept = 0.195), color = "red") +
+  labs(caption = "Red line is BC actual graduation rate,
+  Blue line is BC predicted grad rate")
+```
+
+![](classifier_files/figure-gfm/unnamed-chunk-1-2.png)<!-- -->
+
+``` r
+#testing_with_predictions %>% filter(institution_name == "Bellevue College")
+```
+
+``` r
+testing_with_predictions %>% filter(institution_name == "Bellevue College")
+```
+
+    ## # A tibble: 1 x 16
+    ##   institution_name basic grad_rate student_count spending_per_aw…
+    ##   <chr>            <chr>     <dbl>         <dbl>            <dbl>
+    ## 1 Bellevue College Asso…     0.195         13820            26904
+    ## # … with 11 more variables: full_time_pct <dbl>, full_time_count <dbl>,
+    ## #   med_sat_value <dbl>, aid_value <dbl>, endow_value <dbl>,
+    ## #   grad_on_time_pct <dbl>, pell_value <dbl>, fresh_retain_value <dbl>,
+    ## #   full_time_fac_pct <dbl>, pred_grad_rate <dbl>, scaled[,1] <dbl>
