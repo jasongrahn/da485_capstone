@@ -228,17 +228,3 @@ testing_with_predictions %>%
 ```
 
 ![](classifier_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
-
-``` r
-testing_with_predictions %>% filter(institution_name == "Bellevue College")
-```
-
-    ## # A tibble: 1 x 19
-    ##   institution_name basic grad_rate student_count spending_per_aw…
-    ##   <chr>            <chr>     <dbl>         <dbl>            <dbl>
-    ## 1 Bellevue College Asso…     0.195         13820            26904
-    ## # … with 14 more variables: full_time_pct <dbl>, full_time_count <dbl>,
-    ## #   med_sat_value <dbl>, aid_value <dbl>, endow_value <dbl>,
-    ## #   grad_on_time_pct <dbl>, pell_value <dbl>, fresh_retain_value <dbl>,
-    ## #   full_time_fac_pct <dbl>, pred_grad_rate <dbl>, resid <dbl>,
-    ## #   scaled_act[,1] <dbl>, scaled_pred[,1] <dbl>, classification <fct>

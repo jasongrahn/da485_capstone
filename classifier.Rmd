@@ -201,8 +201,3 @@ testing_with_predictions %>%
 ```
 
 
-
-```{r}
-testing_with_predictions %>% filter(institution_name == "Bellevue College")
-```
-
