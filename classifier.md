@@ -80,22 +80,26 @@ training_predictions_scatter <- training_with_predictions %>%
   geom_smooth(method = "lm") + 
   geom_rug() +
   theme_light()
+##################################################
+##                                              ##
+## ^^^^ TAKE THIS OUT AND PUT IN A QQ PLOT ^^^^ ##
+##                                              ##
+##################################################
+
+training_QQ <- training_with_predictions %>% 
+  ggplot(aes(sample = pred_grad_rate)) +
+  stat_qq() +
+  theme_light() +
+  labs(title = "Training plots...")
+
 
 training_predictions_boxplot <- training_with_predictions %>% 
   arrange(basic) %>% 
-  #mutate(TRUE == TRUE) %>% 
-         #instituion_type = str_sub(basic, start = 1L, end = 5L),
-         #instituion_type = case_when(instituion_type == "Assoc" ~ "Associates",
-          #                           instituion_type == "Bacca" ~ "Baccalaureate",
-          #                           instituion_type == "Docto" ~ "Doctoral",
-          #                           instituion_type == "Maste" ~ "Masters",
-          #                           instituion_type == "Resea" ~ "Research",
-          #                           instituion_type == "Schoo" ~ "Specialty",
-          #                           instituion_type == "Triba" ~ "Tribal")) %>% 
   ggplot(aes(y = pred_grad_rate, x = "x")) +
   geom_boxplot() + 
   geom_jitter(alpha = 0.2, width = .09) +
-  theme_light()
+  theme_light() +
+  labs(title = "...do not use for presi")
 
 #histogram of scaled predictions
 training_predictions_histogram <- training_with_predictions %>% 
@@ -106,36 +110,22 @@ training_predictions_histogram <- training_with_predictions %>%
 training_pred_vs_resids <- training_with_predictions %>% 
   ggplot() +
   geom_point(aes(x = pred_grad_rate, y = resid)) +
-  theme_light() +
-  labs(title = "",
-       subtitle = "")
+  theme_light() 
 
-training_predictions_scatter
-```
-
-![](classifier_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
-
-``` r
-training_predictions_boxplot
-```
-
-![](classifier_files/figure-gfm/unnamed-chunk-1-2.png)<!-- -->
-
-``` r
-training_predictions_histogram
-```
-
-![](classifier_files/figure-gfm/unnamed-chunk-1-3.png)<!-- -->
-
-``` r
-cowplot::plot_grid(training_predictions_scatter, 
+cowplot::plot_grid(training_QQ, 
                    training_predictions_boxplot, 
                    training_predictions_histogram,
                    training_pred_vs_resids,
                    labels = c("A", "B", "C", "D"))
 ```
 
-![](classifier_files/figure-gfm/unnamed-chunk-1-4.png)<!-- -->
+![](classifier_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+1.  
+2.  
+3.  
+4.  
+<!-- end list -->
 
 ``` r
 testing_with_predictions <- add_predictions(testing, model = model.10, var = "pred_grad_rate") %>% 
@@ -162,6 +152,16 @@ testing_predictions_scatter <- testing_with_predictions %>%
   geom_smooth(method = "lm") + 
   geom_rug() +
   theme_light()
+##################################################
+##                                              ##
+## ^^^^ TAKE THIS OUT AND PUT IN A QQ PLOT ^^^^ ##
+##                                              ##
+##################################################
+
+testing_QQ <- testing_with_predictions %>% 
+  ggplot(aes(sample = pred_grad_rate)) +
+  stat_qq() +
+  theme_light()
 
 #histogram of scaled predictions
 testing_predictions_histogram <- testing_with_predictions %>% 
@@ -169,32 +169,21 @@ testing_predictions_histogram <- testing_with_predictions %>%
   geom_histogram(aes(x = pred_grad_rate), bins = 25) +
   theme_light()
 
+#boxplot the predictions
 testing_predictions_boxplot <- testing_with_predictions %>% 
   arrange(basic) %>% 
-  #mutate(TRUE == TRUE) %>% 
-         #instituion_type = str_sub(basic, start = 1L, end = 5L),
-         #instituion_type = case_when(instituion_type == "Assoc" ~ "Associates",
-          #                           instituion_type == "Bacca" ~ "Baccalaureate",
-          #                           instituion_type == "Docto" ~ "Doctoral",
-          #                           instituion_type == "Maste" ~ "Masters",
-          #                           instituion_type == "Resea" ~ "Research",
-          #                           instituion_type == "Schoo" ~ "Specialty",
-          #                           instituion_type == "Triba" ~ "Tribal")) %>% 
   ggplot(aes(y = pred_grad_rate, x = "x")) +
   geom_boxplot() + 
   geom_jitter(alpha = 0.2, width = .09) +
   theme_light()
 
+#scatterplot predictions vs residuals
 testing_pred_vs_resids <- testing_with_predictions %>% 
   ggplot() +
   geom_point(aes(x = pred_grad_rate, y = resid)) +
   theme_light()
 
-#testing_predictions_boxplot
-#testing_predictions_scatter
-#testing_predictions_histogram
-
-cowplot::plot_grid(testing_predictions_scatter, 
+cowplot::plot_grid(testing_QQ, 
                    testing_predictions_boxplot, 
                    testing_predictions_histogram, 
                    testing_pred_vs_resids,
@@ -203,28 +192,34 @@ cowplot::plot_grid(testing_predictions_scatter,
 
 ![](classifier_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-``` r
-#testing_with_predictions %>% filter(institution_name == "Bellevue College")
-```
+1.  
+2.  
+3.  
+4.  
+<!-- end list -->
 
 ``` r
 vlines <- as.matrix(testing_with_predictions %>% 
                       filter(institution_name == "Bellevue College") %>% 
                       select(scaled_pred, scaled_act))
 
+colorlist <- c("chartreuse4", "green3", "ivory4", "orangered2", "darkred")
+
 testing_with_predictions %>% 
   ggplot() +
   geom_histogram(aes(x = scaled_pred, fill = classification), binwidth = .15) +
- # scale_fill_gradient2(low = "red", mid = "grey", high = "green",midpoint = mpgr) +
-  geom_vline(aes(xintercept = vlines[1]), color = "blue") +
-  geom_vline(aes(xintercept = vlines[2]), color = "red") +
+  #scale_fill_brewer(palette="Dark2")
+  #scale_fill_gradient2(low = "red", mid = "grey", high = "green",midpoint = mpgr) +
+  geom_vline(aes(xintercept = vlines[1]), color = "blue", size = 1.5) +
+  geom_vline(aes(xintercept = vlines[2]), color = "red", size = 1.5) +
   theme_light() +
-  theme(legend.position="none") +
+  theme(legend.position="right") +
   labs(title = "Histogram of Graduation Predictions",
        subtitle = "BC shows Average rates for both actual and prediction",
        x = "Predicted Graduation Rate",
        caption = "Red line is BC actual graduation rate,
-  Blue line is BC predicted grad rate")
+  Blue line is BC predicted grad rate") +
+  scale_fill_manual(values = colorlist)
 ```
 
 ![](classifier_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
