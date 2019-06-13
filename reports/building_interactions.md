@@ -6,12 +6,12 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ───────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ───────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
 
-    ## ✔ ggplot2 3.1.1       ✔ purrr   0.3.2  
-    ## ✔ tibble  2.1.1       ✔ dplyr   0.8.0.1
-    ## ✔ tidyr   0.8.3       ✔ stringr 1.4.0  
-    ## ✔ readr   1.3.1       ✔ forcats 0.4.0
+    ## ✔ ggplot2 3.1.1     ✔ purrr   0.3.2
+    ## ✔ tibble  2.1.3     ✔ dplyr   0.8.1
+    ## ✔ tidyr   0.8.3     ✔ stringr 1.4.0
+    ## ✔ readr   1.3.1     ✔ forcats 0.4.0
 
     ## Warning: package 'ggplot2' was built under R version 3.5.2
 
@@ -21,37 +21,45 @@ library(tidyverse)
 
     ## Warning: package 'purrr' was built under R version 3.5.2
 
-    ## Warning: package 'dplyr' was built under R version 3.5.2
-
     ## Warning: package 'stringr' was built under R version 3.5.2
 
     ## Warning: package 'forcats' was built under R version 3.5.2
 
-    ## ── Conflicts ──────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ──────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
-Our task today is to build interactions between each of the numeric variables.
+Our task today is to build interactions between each of the numeric
+variables.
 
-CHECK - `renaming` - Marlie already renamed the variables, so we don't need to do that step.
+CHECK - `renaming` - Marlie already renamed the variables, so we don’t
+need to do that step.
 
-CHECK - `filtering` - CHECK - We also learned that we only want the institutions that are similar to BC, so those need filtering too.
+CHECK - `filtering` - CHECK - We also learned that we only want the
+institutions that are similar to BC, so those need filtering too.
 
-CHECK - `selecting` - There are a bunch of variables that we've kept for the sake of analysis (items like latitude and longitude). Those are not required for the sake of modeling. Before we build the interactions, we need to select only those variables we'll use.
+CHECK - `selecting` - There are a bunch of variables that we’ve kept for
+the sake of analysis (items like latitude and longitude). Those are not
+required for the sake of modeling. Before we build the interactions, we
+need to select only those variables we’ll use.
 
-CHECK - `interaction` - After we do that, THEN we can build the interactions. Build the interactions based on the correlations Marlie posted to the google drive. Build interactions of anything with correlations greater than (absolute value .5)
+CHECK - `interaction` - After we do that, THEN we can build the
+interactions. Build the interactions based on the correlations Marlie
+posted to the google drive. Build interactions of anything with
+correlations greater than (absolute value .5)
 
-CHECK - `splitting` - Then we should build training and test datasets. Hmmm, one more thing; since **Bellevue College** is our customer, we should make sure this isn't part of the training data somehow.
+CHECK - `splitting` - Then we should build training and test datasets.
+Hmmm, one more thing; since **Bellevue College** is our customer, we
+should make sure this isn’t part of the training data somehow.
 
-Let's start by importing.
+Let’s start by importing.
 
 ``` r
 library(readr)
 institution_data <- read_csv(here::here("data/institution_data_explore_mc - institution_data.csv"))
 ```
 
-filtering
----------
+## filtering
 
 Then filtering for just bc-like colleges
 
@@ -72,12 +80,12 @@ nrow(institution_data)
 
     ## [1] 582
 
-we've dropped the number of rows from 3,798 to 582; which is what we wanted.
+we’ve dropped the number of rows from 3,798 to 582; which is what we
+wanted.
 
-selecting
----------
+## selecting
 
-Now we'll write some code to retain *only* the modeling variables.
+Now we’ll write some code to retain *only* the modeling variables.
 
 ``` r
 bc_institution_data <- 
@@ -117,12 +125,16 @@ head(bc_institution_data,5)
     ## #   grad_on_time_pct <dbl>, pell_value <dbl>, fresh_retain_value <dbl>,
     ## #   full_time_fac_pct <dbl>
 
-so we've dropped the number of columns from 23 to 14; which is what we expect as well. What we DONT need are interactions with names or graduation rates. Names are just indentifiers and grad rates are what we're trying to predict.
+so we’ve dropped the number of columns from 23 to 14; which is what we
+expect as well. What we DONT need are interactions with names or
+graduation rates. Names are just indentifiers and grad rates are what
+we’re trying to predict.
 
-Filling NAs
------------
+## Filling NAs
 
-After independent review from team members, we've decided to fill the NAs with median values. Consider this note simply documentation of the assumption.
+After independent review from team members, we’ve decided to fill the
+NAs with median values. Consider this note simply documentation of the
+assumption.
 
 ``` r
 bc_institution_data$med_sat_value[is.na(bc_institution_data$med_sat_value)] <- 
@@ -138,18 +150,14 @@ bc_institution_data$fresh_retain_value[is.na(bc_institution_data$fresh_retain_va
   round(median(bc_institution_data$fresh_retain_value, na.rm = TRUE))
 ```
 
-Interactions
-------------
+## Interactions
 
-Building interactions of the variables that showed high correlation in Marlie's review.
+Building interactions of the variables that showed high correlation in
+review.
 
 ``` r
 bc_institution_data <- bc_institution_data %>% 
-  mutate(#endow_value = as.integer(endow_value),            #moved these above.
-         #med_sat_value = as.integer(med_sat_value),        #moved these above.
-         #grad_on_time_pct = as.integer(grad_on_time_pct),  #moved these above.
-         #grad_on_time_pct = grad_on_time_pct / 100,        #moved these above.
-         EndowXSpend = endow_value * spending_per_award,
+  mutate(EndowXSpend = endow_value * spending_per_award,
          PellXSat = med_sat_value   *   pell_value,
          RetainXSat = fresh_retain_value    *   med_sat_value,
          AidXSat =  aid_value * med_sat_value,
@@ -235,10 +243,9 @@ bc_institution_data %>%
     geom_density()
 ```
 
-![](building_interactions_files/figure-markdown_github/unnamed-chunk-6-1.png)
+![](building_interactions_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-splitting test and training data
---------------------------------
+## splitting test and training data
 
 ``` r
 set.seed(310)
@@ -306,8 +313,7 @@ train %>%
     ## #   EndowXSpend <dbl>, PellXSat <dbl>, RetainXSat <dbl>, AidXSat <dbl>,
     ## #   AidXEndow <dbl>, id <int>
 
-Export data sets
-----------------
+## Export data sets
 
 ``` r
 write_excel_csv(x = bc_institution_data,

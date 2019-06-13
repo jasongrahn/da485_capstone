@@ -94,15 +94,11 @@ bc_institution_data$fresh_retain_value[is.na(bc_institution_data$fresh_retain_va
 
 ## Interactions
 
-Building interactions of the variables that showed high correlation in Marlie's review.
+Building interactions of the variables that showed high correlation in review.
 
 ```{r}
 bc_institution_data <- bc_institution_data %>% 
-  mutate(#endow_value = as.integer(endow_value),            #moved these above.
-         #med_sat_value = as.integer(med_sat_value),        #moved these above.
-         #grad_on_time_pct = as.integer(grad_on_time_pct),  #moved these above.
-         #grad_on_time_pct = grad_on_time_pct / 100,        #moved these above.
-         EndowXSpend = endow_value * spending_per_award,
+  mutate(EndowXSpend = endow_value * spending_per_award,
          PellXSat = med_sat_value	*	pell_value,
          RetainXSat = fresh_retain_value	*	med_sat_value,
          AidXSat = 	aid_value * med_sat_value,

@@ -23,6 +23,11 @@ testing <- read_csv(here::here("data/test_data.csv")) %>%
   dplyr::select(-contains("X"), -id) 
 ```
 
+# Rebuilding models 
+
+## model 1 to find outliers
+
+(this repeats Di's analysis)
 ```{r build and use model 1}
 model.1 <- lm(grad_rate ~ student_count +spending_per_award +full_time_pct
              +full_time_count +med_sat_value +aid_value
@@ -41,6 +46,7 @@ training_without_outliers <- add_residuals(data = training,
   filter(abs.std < 2)
 ```
 
+## model 10 to build predictions
 
 ```{r rebuild model 10 from the LM}
 model.10 <- lm(grad_rate ~ spending_per_award 
@@ -56,6 +62,8 @@ model.10 <- lm(grad_rate ~ spending_per_award
              ,data = training_without_outliers)
 ```
 
+## putting predictions into training
+
 ```{r add predictions back to training set}
 training_with_predictions <- add_predictions(training_without_outliers, model.10, var = "pred_grad_rate") %>% 
   add_residuals(model = model.10, var = "resid") %>% 
@@ -64,14 +72,18 @@ training_with_predictions <- add_predictions(training_without_outliers, model.10
   mutate(scaled = scale(pred_grad_rate))
 ```
 
+## and some plotting with the training data 
+
+This builds out reqs for plotting the testing data. 
+
 ```{r}
 #and a quick visual of known graduation to predicuted graduation
-training_predictions_scatter <- training_with_predictions %>% 
-  ggplot(aes(x = grad_rate, y = pred_grad_rate)) +
-  geom_point() + 
-  geom_smooth(method = "lm") + 
-  geom_rug() +
-  theme_light()
+#training_predictions_scatter <- training_with_predictions %>% 
+#  ggplot(aes(x = grad_rate, y = pred_grad_rate)) +
+#  geom_point() + 
+#  geom_smooth(method = "lm") + 
+#  geom_rug() +
+#  theme_light()
 ##################################################
 ##                                              ##
 ## ^^^^ TAKE THIS OUT AND PUT IN A QQ PLOT ^^^^ ##
@@ -108,44 +120,36 @@ cowplot::plot_grid(training_QQ,
                    training_predictions_boxplot, 
                    training_predictions_histogram,
                    training_pred_vs_resids,
-                   labels = c("A", "B", "C", "D"))
+                   labels = c("1", "2", "3", "4"))
 ```
 
-A. 
+1. QQ plot shows generally normal behavior with a few outliers.
 
-B.
+2.
 
-C. 
+3. 
 
-D. 
+4. 
 
+# Testing
+
+## Application of the model
 
 ```{r}
 testing_with_predictions <- add_predictions(testing, model = model.10, var = "pred_grad_rate") %>% 
   add_residuals(model = model.10, var = "resid") %>% 
-  #and we dont need these other variables either
-  #dplyr::select(-resid, -sdev, -std.norm, -abs.std) %>% 
-  mutate(scaled_act = scale(grad_rate), 
-         scaled_pred = scale(pred_grad_rate),
-         classification = factor(case_when(scaled_pred <= (-3) ~ "Poor",
-                                           scaled_pred <= (-2) ~ "Below Average",
-                                           scaled_pred <= (1) ~ "Average",
-                                           scaled_pred <= (2) ~ "Above Average",
-                                           scaled_pred > (2) ~ "Excellent"),
-                                 levels = c("Excellent", "Above Average", "Average", "Below Average", "Poor"))
-         ) %>% 
   arrange(pred_grad_rate)
 ```
 
 
 ```{r}
 #and a quick visual of known graduation to predicuted graduation
-testing_predictions_scatter <- testing_with_predictions %>% 
-  ggplot(aes(x = grad_rate, y = pred_grad_rate)) +
-  geom_point() + 
-  geom_smooth(method = "lm") + 
-  geom_rug() +
-  theme_light()
+#testing_predictions_scatter <- testing_with_predictions %>% 
+#  ggplot(aes(x = grad_rate, y = pred_grad_rate)) +
+#  geom_point() + 
+#  geom_smooth(method = "lm") + 
+#  geom_rug() +
+#  theme_light()
 ##################################################
 ##                                              ##
 ## ^^^^ TAKE THIS OUT AND PUT IN A QQ PLOT ^^^^ ##
@@ -155,66 +159,90 @@ testing_predictions_scatter <- testing_with_predictions %>%
 testing_QQ <- testing_with_predictions %>% 
   ggplot(aes(sample = pred_grad_rate)) +
   stat_qq() +
-  theme_light()
+  theme_light() +
+  labs(title = "QQ Plot")
 
 #histogram of scaled predictions
 testing_predictions_histogram <- testing_with_predictions %>% 
   ggplot() +
   geom_histogram(aes(x = pred_grad_rate), bins = 25) +
-  theme_light()
+  theme_light() +
+  labs(title = "Boxplot of predicted rates")
 
 #boxplot the predictions
 testing_predictions_boxplot <- testing_with_predictions %>% 
   arrange(basic) %>% 
   ggplot(aes(y = pred_grad_rate, x = "x")) +
   geom_boxplot() + 
-  geom_jitter(alpha = 0.2, width = .09) +
-  theme_light()
+  geom_jitter(alpha = 0.2, width = .09, color = "darkblue") +
+  theme_light() +
+  labs(title = "Histogram of predictions")
 
 #scatterplot predictions vs residuals
 testing_pred_vs_resids <- testing_with_predictions %>% 
   ggplot() +
   geom_point(aes(x = pred_grad_rate, y = resid)) +
-  theme_light()
+  theme_light() +
+  labs(title = "Scatterplot of residuals to predictions")
 
 cowplot::plot_grid(testing_QQ, 
                    testing_predictions_boxplot, 
                    testing_predictions_histogram, 
                    testing_pred_vs_resids,
-                   labels = c("A", "B", "C", "D"))
+                   labels = c("1", "2", "3", "4"))
 ```
 
-A.
+1. QQ plot shows generally normal behavior with a few outliers on the top end; much like the training data. 
 
-B.
+2. The boxplot provides an additional view of distribution with a tight distribution round the median. 
 
-C. 
+3. Histogram reinforces normal distribution. 
 
-D. 
+4. Scatterplot of residuals to predictions is generally equal around zero, with a few outliers. 
 
+# Classification
+
+A classifier should be as simple as possible for the given application. We investigated a variety of methods to automatically find and classify five performance buckets. In the end, the simplest model is also the most easily understood. 
+
+After predicting and scaling graduations rates for each of the colleges in the testing data, we identified that they sit in a generally normal distribution. Using the scaled values of the prediction, we plot a standard normal distribution. [fill this out better]
 
 ```{r}
+# add classification buckets
+testing_with_predictions <- testing_with_predictions %>% 
+  mutate(scaled_act = scale(grad_rate), 
+         scaled_pred = scale(pred_grad_rate),
+         Classifications = factor(case_when(scaled_pred <= (-3) ~ "Poor",
+                                           scaled_pred <= (-2) ~ "Below Average",
+                                           scaled_pred <= (1) ~ "Average",
+                                           scaled_pred <= (2) ~ "Above Average",
+                                           scaled_pred > (2) ~ "Excellent"),
+                                 levels = c("Excellent", "Above Average", "Average", "Below Average", "Poor"))) 
+
+# build some lines
 vlines <- as.matrix(testing_with_predictions %>% 
                       filter(institution_name == "Bellevue College") %>% 
                       select(scaled_pred, scaled_act))
 
+# force coloration
 colorlist <- c("chartreuse4", "green3", "ivory4", "orangered2", "darkred")
 
-testing_with_predictions %>% 
+# visualize the classification
+classified_histogram <- testing_with_predictions %>% 
   ggplot() +
-  geom_histogram(aes(x = scaled_pred, fill = classification), binwidth = .15) +
-  #scale_fill_brewer(palette="Dark2")
-  #scale_fill_gradient2(low = "red", mid = "grey", high = "green",midpoint = mpgr) +
+  geom_histogram(aes(x = scaled_pred, fill = Classifications), binwidth = .15) +
   geom_vline(aes(xintercept = vlines[1]), color = "blue", size = 1.5) +
   geom_vline(aes(xintercept = vlines[2]), color = "red", size = 1.5) +
   theme_light() +
   theme(legend.position="right") +
   labs(title = "Histogram of Graduation Predictions",
        subtitle = "BC shows Average rates for both actual and prediction",
-       x = "Predicted Graduation Rate",
+       x = "Predicted Graduation Rate (scaled)",
        caption = "Red line is BC actual graduation rate,
   Blue line is BC predicted grad rate") +
   scale_fill_manual(values = colorlist)
+classified_histogram
+
+ggsave("classified_histogram.jpg")
 ```
 
 
