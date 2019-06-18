@@ -60,6 +60,8 @@ model.10 <- lm(grad_rate ~ spending_per_award
              + pell_value*med_sat_value           #PellXSat
              + fresh_retain_value*med_sat_value   #RetainXSat
              ,data = training_without_outliers)
+summary(model.10)
+
 ```
 
 ## putting predictions into training
@@ -167,7 +169,7 @@ testing_predictions_histogram <- testing_with_predictions %>%
   ggplot() +
   geom_histogram(aes(x = pred_grad_rate), bins = 25) +
   theme_light() +
-  labs(title = "Boxplot of predicted rates")
+  labs(title = "Histogram of predictions")
 
 #boxplot the predictions
 testing_predictions_boxplot <- testing_with_predictions %>% 
@@ -176,20 +178,28 @@ testing_predictions_boxplot <- testing_with_predictions %>%
   geom_boxplot() + 
   geom_jitter(alpha = 0.2, width = .09, color = "darkblue") +
   theme_light() +
-  labs(title = "Histogram of predictions")
+  labs(title = "Boxplot of predictions",
+       x = "")
 
 #scatterplot predictions vs residuals
 testing_pred_vs_resids <- testing_with_predictions %>% 
-  ggplot() +
-  geom_point(aes(x = pred_grad_rate, y = resid)) +
+  ggplot(aes(x = pred_grad_rate, y = resid, 
+             label = round(pred_grad_rate,2))) +
+  geom_point() +
+ # geom_label() +
   theme_light() +
   labs(title = "Scatterplot of residuals to predictions")
 
-cowplot::plot_grid(testing_QQ, 
+testing_pred_vs_resids
+
+cowplot_results <- cowplot::plot_grid(testing_QQ, 
                    testing_predictions_boxplot, 
                    testing_predictions_histogram, 
                    testing_pred_vs_resids,
                    labels = c("1", "2", "3", "4"))
+cowplot_results
+
+ggsave("results_cowplot.jpg")
 ```
 
 1. QQ plot shows generally normal behavior with a few outliers on the top end; much like the training data. 
@@ -242,8 +252,45 @@ classified_histogram <- testing_with_predictions %>%
   scale_fill_manual(values = colorlist)
 classified_histogram
 
+classified_histogram <- testing_with_predictions %>% 
+  ggplot() +
+  geom_histogram(aes(x = pred_grad_rate, fill = Classifications)) +
+  theme_light() +
+  theme(legend.position="right") +
+  labs(title = "Histogram of Graduation Predictions",
+       subtitle = "BC shows Average rates for both actual and prediction",
+       x = "Predicted Graduation Rate (scaled)",
+       caption = "Red line is BC actual graduation rate,
+  Blue line is BC predicted grad rate") +
+  scale_fill_manual(values = colorlist)
+classified_histogram
+
 ggsave("classified_histogram.jpg")
 ```
 
 
+```{r}
+#show the worst outliers
+head(testing_with_predictions %>% 
+  mutate(delta = round(pred_grad_rate - grad_rate,3),
+         delta = abs(delta)) %>% 
+  arrange(desc(delta)) %>% 
+  select(institution_name, pred_grad_rate, grad_rate, delta)
+  , 10)
+```
+
+```{r}
+# 
+testing_with_predictions %>% 
+  select(pred_grad_rate) %>% 
+  summarize(mean_cl = mean(pred_grad_rate),
+            stddev = sd(pred_grad_rate),
+            stddev_3 = stddev * 3,
+            stddev_2 = stddev * 2,
+            stddev_1 = stddev * 1,
+            low = mean_cl - stddev_3,
+            medlow = mean_cl - stddev_2,
+            medhigh = mean_cl + stddev_2,
+            high = mean_cl + stddev)
+```
 
